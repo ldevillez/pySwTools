@@ -1,5 +1,9 @@
 import sys
+import os
 import ezdxf
+
+from src.dxf_utilities import clean
+from src.file_utilities import check_file
 
 
 if len(sys.argv) < 2:
@@ -8,14 +12,9 @@ if len(sys.argv) < 2:
 
 path = sys.argv[1]
 
-doc = ezdxf.readfile(path)
-print(doc.dxfversion)
-blocks = doc.blocks
-for bloc in blocks:
-    print(bloc.name)
-    for entity in bloc:
-        if(entity.dxftype() == "MTEXT"):
-            if("SOLIDWORKS" in entity.text):
-                print(entity.text)
-                bloc.delete_entity(entity)
-doc.saveas("Clean.dxf")
+if os.path.isdir(path):
+    pass
+else:
+    print(check_file(path))
+    doc = ezdxf.readfile(path)
+    doc.saveas(path.replace)
