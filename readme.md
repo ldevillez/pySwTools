@@ -22,10 +22,16 @@ Idealy it should be done in a [virtual env](https://docs.python.org/3/library/ve
 - Remove the solidworks text from the output dxf file
 
 ## Versions
+
+### V0.2
+- [ ] System Installation (Windows/Linux)
+- [ ] Unit Lines
+- [ ] Unit Files
+
 ### V0.1
 - [x] Installation instruction
 - [x] How to use
-- [ ] Prepare folder of dxf
+- [x] Prepare folder of dxf
 
 ### V0.0
 - [x] Proof of concepts
