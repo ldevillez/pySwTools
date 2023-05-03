@@ -3,10 +3,16 @@
 ## [Unreleased]
 
 ### Added
+- Adding `pyproject.toml`
+- Adding issue and PR template
+- Adding formating (black) and linting (pylint) github action
+
 ### Changed
 - Changing the project from Ready-dxf to a collection of tools
 ### Deprecated
 ### Removed
+- Removing `requirements.txt`
+
 ### Fixed
 ### Security
 

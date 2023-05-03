@@ -1,9 +1,13 @@
-import ezdxf
-import os
+"""Docstring"""
 
-from src.file_utilities import check_file, append_name
+import os
+import ezdxf
+
+from src.file_utilities import check_file
+
 
 def check_file_and_folder(path, save_path, warning=False, save=True):
+    """Docstring"""
     if os.path.isdir(path):
         list_dir = os.listdir(path)
         try:
@@ -12,7 +16,7 @@ def check_file_and_folder(path, save_path, warning=False, save=True):
             pass
 
         for name in list_dir:
-            npath = os.path.join(path,name)
+            npath = os.path.join(path, name)
             check_file_and_folder(npath, os.path.join(save_path, name))
     else:
         if check_file(path):
@@ -23,13 +27,17 @@ def check_file_and_folder(path, save_path, warning=False, save=True):
         else:
             print(f"{path} is not a dxf file")
 
-def clean(doc):
-    remove_SWK(doc)
 
-def remove_SWK(doc):
+def clean(doc):
+    """Docstring"""
+    remove_sw(doc)
+
+
+def remove_sw(doc):
+    """Docstring"""
     blocks = doc.blocks
     for bloc in blocks:
         for entity in bloc:
-            if(entity.dxftype() == "MTEXT"):
-                if("SOLIDWORKS" in entity.text):
+            if entity.dxftype() == "MTEXT":
+                if "SOLIDWORKS" in entity.text:
                     bloc.delete_entity(entity)

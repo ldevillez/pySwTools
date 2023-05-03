@@ -1,0 +1,19 @@
+[tool.poetry]
+name = "pyswtools"
+version = "0.3.0"
+description = "Set of tools to improve Solidworks usage"
+authors = ["ldevillez <louis.devillez@gmail.com>"]
+license = "GNU General Public License"
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = "^3.10"
+ezdxf = "^1.0.3"
+
+[tool.poetry.group.dev.dependencies]
+black = "^23.3.0"
+pylint= "^2.16.2"
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
