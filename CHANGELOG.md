@@ -3,10 +3,14 @@
 ## [Unreleased]
 
 ### Added
+- Adding copy full assembly
+- Adding config handler
+- Adding a utils folder for generic functions
 ### Changed
 ### Deprecated
 ### Removed
 ### Fixed
+- Correct cli not executing the commands
 ### Security
 
 ## v0.2.0 - 2023/05/03

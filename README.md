@@ -22,7 +22,36 @@ If you found a bug or if you have any idea for the project feel free to open a n
 ## List of modules
 
 ### CLI
-It is the main module of this project. It allows you to select the actions that you want to apply.
+It is the main module of this project. It allows you to select the actions that you want to apply. To directly get help from the tool simply type:
+```
+pyswtools
+```
+
+### Config
+This command helps you handling your config. By default, the config is the following:
+```
+sw_version: 2022 # This is important to set the correct version
+```
+
+If you want to modify the config, you need to first create a file with :
+```
+pyswtools config init
+```
+
+And you can reset to the default config with:
+```
+pyswtools config init --force
+```
+
+If you want to get the current config:
+```
+pyswtools config dump
+```
+Or the path to the current config:
+```
+pyswtools config dump --path
+```
+
 
 ### Ready_DXF
 Prepare dxf files from solidworks to be laser cutted:
@@ -51,7 +80,15 @@ It will output a `directory_cleaned` directory with all the cleaned dxf.
 - [ ] Add tests
 
 ### Copy_full_assembly
-- [ ] To migrate
+This tool help you when copying multiple file or assembly. It will help you by updating path reference to new path reference:
+- In the equation manager
+#### How to use
+```
+pyswtools copy-full-assembly PATH_TO_DIR SRC_REPLACE TARGET_REPLACE
+```
+- `PATH_TO_DIR` is the path to directory with all the files to update
+- `SRC_REPLACE` is the string in the current path reference that you want to replace (probably the name of the old directory)
+- `TARGET_REPLACE` is the string in the current path reference that you want to replace (probably the name of the new directory)
 
 ### Exports_to_STL
 - [ ] To migrate
