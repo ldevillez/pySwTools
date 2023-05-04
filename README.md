@@ -14,6 +14,8 @@ Or you can install it from this repository:
 pip install .
 ```
 
+If you are on windows, maybe the directory where the script is installed will not be on the PATH but it can be added to directly be able to use the script from a command prompt.
+
 
 ## Contributing
 
@@ -68,10 +70,10 @@ It will output a `clean.dxf` file.
 You can also provide the path to a directory with dxf inside
 
 ```
-pyswtools ready-dxf /path/to/directory/
+pyswtools ready-dxf /path/to/directory
 ```
 
-It will output a `directory_cleaned` directory with all the cleaned dxf.
+It will output a `directory_cleaned` directory with all the cleaned dxf. Do not include the `/` or `\` at the end of the path of the directory
 
 #### Features to come
 - [ ] Combine Lines

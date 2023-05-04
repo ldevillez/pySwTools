@@ -45,8 +45,7 @@ def copy_full_assembly(input_path, src_replace, target_replace) -> None:
     # Walk though the directory and each subdirectory
     for root, _, files in os.walk(input_path):
         for file in files:
-            curr_path = os.path.join(root, file)
-
+            curr_path = os.path.abspath(os.path.join(root, file))
             if ".SLDPRT" not in file or "~$" in file:
                 continue
             print(f"- {file}")
