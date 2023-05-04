@@ -19,7 +19,11 @@ If you are on windows, maybe the directory where the script is installed will no
 
 ## Contributing
 
-If you found a bug or if you have any idea for the project feel free to open a new issue on github ! And if you want to directly contribute, you are welcome
+If you found a bug or if you have any idea for the project feel free to open a new issue on github ! And if you want to directly contribute, you are welcome.
+
+List of ressources that can be helpful when starting with the solidworks API:
+- [https://help.solidworks.com/2022/french/SolidWorks/sldworks/c_solidworks_api.htm?verRedirect=1](Solidworks API)
+- [https://mycad.visiativ.com/sites/default/files/questions/answer/15/11/2019/solidworks_python_api.pdf](Python examples)
 
 ## List of modules
 
@@ -55,7 +59,7 @@ pyswtools config dump --path
 ```
 
 
-### Ready_DXF
+### Ready-dxf
 Prepare dxf files from solidworks to be laser cutted:
 - Remove the solidworks text from the output dxf file
 
@@ -81,7 +85,7 @@ It will output a `directory_cleaned` directory with all the cleaned dxf. Do not 
 - [ ] Add auto coloring
 - [ ] Add tests
 
-### Copy_full_assembly
+### Copy-full-assembly
 This tool help you when copying multiple file or assembly. It will help you by updating path reference to new path reference:
 - In the equation manager
 #### How to use
@@ -92,7 +96,24 @@ pyswtools copy-full-assembly PATH_TO_DIR SRC_REPLACE TARGET_REPLACE
 - `SRC_REPLACE` is the string in the current path reference that you want to replace (probably the name of the old directory)
 - `TARGET_REPLACE` is the string in the current path reference that you want to replace (probably the name of the new directory)
 
-### Exports_to_STL
-- [ ] To migrate
-### Exports_to_dxf
-- [ ] To migrate
+### Auto-export
+
+This tool help you export a directory (or a part) to other file extensions. The current exrports are:
+- DXF
+- STL
+- Auto
+
+The Auto mode will use the name of the part and see if an extension is specified in it (e.g. `DXF_my_part.SLDPRT`)
+
+The DXF export will only work when there is only one body in the part. Also the face that will be exported is a planar one with the biggest surface.
+
+The STL export will consider the z axis as being the vertical dimension.
+
+#### How to use
+
+
+```
+pyswtools auto-export PATH/TO/DIR MODE
+```
+
+With `Mode` being `AUTO`, `DXF` or `STL`. It will create directory with the extension used  and the corresponding files in it.

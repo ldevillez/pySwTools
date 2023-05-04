@@ -7,6 +7,7 @@ import click
 from .config import config
 from .ready_dxf.main import ready_dxf
 from .copy_full_assembly.main import copy_full_assembly
+from .auto_exporter.main import auto_export
 
 
 __version__ = "0.4.0"
@@ -27,6 +28,7 @@ def cli() -> None:
 cli.add_command(config)
 cli.add_command(ready_dxf)
 cli.add_command(copy_full_assembly)
+cli.add_command(auto_export)
 
 if __name__ == "__main__":
     cli()

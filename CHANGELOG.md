@@ -3,7 +3,9 @@
 ## [Unreleased]
 
 ### Added
+- Adding auto_export module
 ### Changed
+- Changing used version of pydantic
 ### Deprecated
 ### Removed
 ### Fixed
