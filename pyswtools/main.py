@@ -1,5 +1,5 @@
 """
-Docstring
+Main file of the package which define the CLI and each submodule
 """
 
 import click
@@ -9,8 +9,8 @@ from .ready_dxf.main import ready_dxf
 from .copy_full_assembly.main import copy_full_assembly
 
 
-__version__ = "0.2.1"
-__author__ = "Devillez Louis, Kjell Magne Fauske"
+__version__ = "0.4.0"
+__author__ = "Devillez Louis"
 __maintainer__ = "Deville Louis"
 __email__ = "louis.devillez@gmail.com"
 
