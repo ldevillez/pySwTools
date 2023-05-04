@@ -3,6 +3,15 @@
 ## [Unreleased]
 
 ### Added
+### Changed
+### Deprecated
+### Removed
+### Fixed
+### Security
+
+## v0.5.0 - 2023/05/04
+
+### Added
 - Adding auto_export module
 ### Changed
 - Changing used version of pydantic
@@ -11,7 +20,7 @@
 ### Fixed
 ### Security
 
-## v0.4.0
+## v0.4.0 - 2023/05/04
 
 ### Added
 - Adding copy full assembly

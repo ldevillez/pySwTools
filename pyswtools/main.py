@@ -10,7 +10,7 @@ from .copy_full_assembly.main import copy_full_assembly
 from .auto_exporter.main import auto_export
 
 
-__version__ = "0.4.0"
+__version__ = "0.5.0"
 __author__ = "Devillez Louis"
 __maintainer__ = "Deville Louis"
 __email__ = "louis.devillez@gmail.com"
