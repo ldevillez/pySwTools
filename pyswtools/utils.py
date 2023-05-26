@@ -21,3 +21,4 @@ def check_system() -> bool:
     Check if the system is windows
     """
     return platform.system() == "Windows"
+

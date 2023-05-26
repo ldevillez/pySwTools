@@ -117,3 +117,20 @@ pyswtools auto-export PATH/TO/DIR MODE
 ```
 
 With `Mode` being `AUTO`, `DXF` or `STL`. It will create directory with the extension used  and the corresponding files in it.
+
+### Stat
+This tool help you get stat on an assembly. It can gives you recursive information about the mass of each component of an assembly.
+
+#### How to use
+
+```
+pyswtools stat PATH/TO/ASSEMBLY OPTIONS
+```
+
+You can select the display mode:
+- `--tree`: (default) It will follow the structure from the assembly file
+- `--list`: It will output to a single list
+
+You can select the sort:
+- `--mass`: (default) sort with a decreasing mass
+- `--name`: sort with alphabetical order
