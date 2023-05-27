@@ -22,8 +22,8 @@ If you are on windows, maybe the directory where the script is installed will no
 If you found a bug or if you have any idea for the project feel free to open a new issue on github ! And if you want to directly contribute, you are welcome.
 
 List of ressources that can be helpful when starting with the solidworks API:
-- [https://help.solidworks.com/2022/french/SolidWorks/sldworks/c_solidworks_api.htm?verRedirect=1](Solidworks API)
-- [https://mycad.visiativ.com/sites/default/files/questions/answer/15/11/2019/solidworks_python_api.pdf](Python examples)
+- [Solidworks API](https://help.solidworks.com/2022/french/SolidWorks/sldworks/c_solidworks_api.htm?verRedirect=1)
+- [Python examples](https://mycad.visiativ.com/sites/default/files/questions/answer/15/11/2019/solidworks_python_api.pdf)
 
 ## List of modules
 
