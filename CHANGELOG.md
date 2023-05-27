@@ -1,13 +1,21 @@
 # Changelog
 
 ## [Unreleased]
+### Added
+### Changed
+### Deprecated
+### Removed
+### Fixed
+### Security
 
+## v0.6.0 - 2023/05/27
 ### Added
 - Adding stat module
 ### Changed
 ### Deprecated
 ### Removed
 ### Fixed
+- Correcting README
 ### Security
 
 ## v0.5.0 - 2023/05/04
