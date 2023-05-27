@@ -3,6 +3,7 @@
 ## [Unreleased]
 
 ### Added
+- Adding stat module
 ### Changed
 ### Deprecated
 ### Removed
