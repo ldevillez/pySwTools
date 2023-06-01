@@ -8,6 +8,9 @@
 ### Deprecated
 ### Removed
 ### Fixed
+- Enum in click option for stat module
+- Changing option flag to choice for stat module
+
 ### Security
 
 ## v0.6.0 - 2023/05/27
