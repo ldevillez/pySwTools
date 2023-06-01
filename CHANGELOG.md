@@ -2,7 +2,9 @@
 
 ## [Unreleased]
 ### Added
+- Adding density info to stat module
 ### Changed
+- Improving the output of the state module with tabular like output
 ### Deprecated
 ### Removed
 ### Fixed
