@@ -13,7 +13,7 @@ from .stat.main import stat
 
 __version__ = "0.6.0"
 __author__ = "Devillez Louis"
-__maintainer__ = "Deville Louis"
+__maintainer__ = "Devillez Louis"
 __email__ = "louis.devillez@gmail.com"
 
 
