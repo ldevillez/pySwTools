@@ -2,10 +2,17 @@
 
 ## [Unreleased]
 ### Added
+- Adding density info to stat module
 ### Changed
+- Improving the output of the state module with tabular like output
+- Updating the doc in the README for the stat module
 ### Deprecated
 ### Removed
 ### Fixed
+- Enum in click option for stat module
+- Changing option flag to choice for stat module
+- Fix typo in maintainer name
+
 ### Security
 
 ## v0.6.0 - 2023/05/27
