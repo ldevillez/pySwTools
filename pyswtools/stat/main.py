@@ -50,10 +50,12 @@ def sort_key_struct(struct: dict, type_sort: TypeSort = TypeSort.MASS) -> list:
 
     return struct.keys()
 
+
 def print_header():
     header = f"{'Name':<50} | {'Mtot':<5} | {'n':<3} | {'Mpart':<6} | {'Density':<7}  "
     click.echo(header)
     click.echo("-" * len(header))
+
 
 def display_tree(
     tree_struct_mass: dict, type_sort: TypeSort = TypeSort.NAME, indent: str = ""
@@ -67,14 +69,16 @@ def display_tree(
         print_header()
     for idx, elem in enumerate(sorted_list):
         char = "┝━"
-        if idx == n-1:
-            char= "┕━"
-        click.echo(f"{indent + char + ' ' + elem :<50} | {tree_struct_mass[elem]['mass'] * tree_struct_mass[elem]['number']:5.3f} | {tree_struct_mass[elem]['number']:3d} | {tree_struct_mass[elem]['mass']:6.4f} | {tree_struct_mass[elem]['density']:6.4f}")
+        if idx == n - 1:
+            char = "┕━"
+        click.echo(
+            f"{indent + char + ' ' + elem :<50} | {tree_struct_mass[elem]['mass'] * tree_struct_mass[elem]['number']:5.3f} | {tree_struct_mass[elem]['number']:3d} | {tree_struct_mass[elem]['mass']:6.4f} | {tree_struct_mass[elem]['density']:6.4f}"
+        )
         if len(tree_struct_mass[elem]["children"]) > 0:
             char = "│ "
-            if idx == n-1:
-                char= "  "
-            display_tree(tree_struct_mass[elem]["children"],type_sort, indent + char)
+            if idx == n - 1:
+                char = "  "
+            display_tree(tree_struct_mass[elem]["children"], type_sort, indent + char)
 
 
 def display_list(list_struct: dict, type_sort: TypeSort = TypeSort.NAME) -> None:
@@ -136,7 +140,7 @@ def complete_info_assembly(sw_comp, dict_of_comp: dict) -> dict:
         dict_of_comp[sw_comp_name] = {
             "number": 1,
             "mass": sw_mass,
-            "density": sw_comp_doc_ext.CreateMassProperty2.density
+            "density": sw_comp_doc_ext.CreateMassProperty2.density,
         }
 
     # Get info about children
@@ -161,9 +165,15 @@ def complete_info_assembly(sw_comp, dict_of_comp: dict) -> dict:
         dir_okay=False,
     ),
 )
-
-@click.option("--type_output", "type_output", type=click.Choice(TypeOutput), default=TypeOutput.TREE)
-@click.option("--type_sort", "type_sort", type=click.Choice(TypeSort), default=TypeSort.MASS)
+@click.option(
+    "--type_output",
+    "type_output",
+    type=click.Choice(TypeOutput),
+    default=TypeOutput.TREE,
+)
+@click.option(
+    "--type_sort", "type_sort", type=click.Choice(TypeSort), default=TypeSort.MASS
+)
 def stat(input_path: str, type_output: TypeOutput, type_sort: TypeSort) -> None:
     """
     Display stat about an assembly
@@ -194,9 +204,9 @@ def stat(input_path: str, type_output: TypeOutput, type_sort: TypeSort) -> None:
     sw_comps = sw_doc.GetComponents(True)
 
     # Empty struct to fill
-    assembly_name = filename.rpartition('.')[-0]
+    assembly_name = filename.rpartition(".")[-0]
     dict_of_comp = {
-        f"{assembly_name}" : {
+        f"{assembly_name}": {
             "mass": sw_doc.Extension.CreateMassProperty2.Mass,
             "density": sw_doc.Extension.CreateMassProperty2.Density,
             "number": 1,
@@ -217,4 +227,6 @@ def stat(input_path: str, type_output: TypeOutput, type_sort: TypeSort) -> None:
     elif type_output is TypeOutput.LIST:
         display_list(dict_of_comp, type_sort)
     else:
-        click.echo(f"Type output {type_output} is unknown {type_output is TypeOutput.TREE} {type(type_output)}")
+        click.echo(
+            f"Type output {type_output} is unknown {type_output is TypeOutput.TREE} {type(type_output)}"
+        )
