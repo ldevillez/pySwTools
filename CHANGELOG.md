@@ -3,16 +3,17 @@
 ## [Unreleased]
 ### Added
 - Adding density info to stat module
+- Adding flag to stat module to get only elements with default density
 ### Changed
 - Improving the output of the state module with tabular like output
 - Updating the doc in the README for the stat module
+- Enum in click option for stat module
+- Changing option flag to choice for stat module
 ### Deprecated
 ### Removed
 ### Fixed
-- Enum in click option for stat module
-- Changing option flag to choice for stat module
 - Fix typo in maintainer name
-
+- Fix stat module for no volume part
 ### Security
 
 ## v0.6.0 - 2023/05/27

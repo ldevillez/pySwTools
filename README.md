@@ -127,10 +127,12 @@ This tool help you get stat on an assembly. It can gives you recursive informati
 pyswtools stat PATH/TO/ASSEMBLY OPTIONS
 ```
 
-You can select the display mode with `--type_output`:
+You can select the display mode with `--type-output`:
 - `tree`: (default) It will follow the structure from the assembly file
 - `list`: It will output to a single list
 
-You can select the sort mode with `--type_sort`:
+You can select the sort mode with `--type-sort`:
 - `mass`: (default) sort with a decreasing mass
 - `name`: sort with alphabetical order
+
+You can get only the elements with a default density (1000 Kg/m³) with the option `--only-default-density`. This option only works with a `type `list`

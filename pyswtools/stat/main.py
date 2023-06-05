@@ -35,6 +35,19 @@ if check_system():
     VT_BYREF = win32com.client.VARIANT(pythoncom.VT_BYREF | pythoncom.VT_I4, -1)
 
 
+def filter_density_list(struct: dict):
+    return {k: v for k, v in struct.items() if abs(v["density"] - 1000) < 1e-3}
+
+
+def filter_density_tree(struct: dict):
+    return_struct = {}
+    for k, v in struct.items():
+        if (v["density"] - 1000) < 1e-4:
+            return_struct[k] = v
+            filter_density_tree(return_struct[k]["children"])
+    struct = return_struct
+
+
 def sort_key_struct(struct: dict, type_sort: TypeSort = TypeSort.MASS) -> list:
     """
     Sort a dict struct following a given sort
@@ -134,13 +147,15 @@ def complete_info_assembly(sw_comp, dict_of_comp: dict) -> dict:
     else:
         # Otherwise get the mass
         sw_comp_doc_ext = sw_comp.GetModelDoc2.Extension
-        sw_mass = sw_comp_doc_ext.CreateMassProperty2.Mass
+        sw_mass_property = sw_comp_doc_ext.CreateMassProperty2
+        sw_mass = sw_mass_property.Mass if sw_mass_property is not None else 0
+        sw_density = sw_mass_property.Density if sw_mass_property is not None else 0
 
         # Create an new entity in the general dict
         dict_of_comp[sw_comp_name] = {
             "number": 1,
             "mass": sw_mass,
-            "density": sw_comp_doc_ext.CreateMassProperty2.density,
+            "density": sw_density,
         }
 
     # Get info about children
@@ -166,15 +181,21 @@ def complete_info_assembly(sw_comp, dict_of_comp: dict) -> dict:
     ),
 )
 @click.option(
-    "--type_output",
+    "--type-output",
     "type_output",
     type=click.Choice(TypeOutput),
     default=TypeOutput.TREE,
 )
 @click.option(
-    "--type_sort", "type_sort", type=click.Choice(TypeSort), default=TypeSort.MASS
+    "--type-sort", "type_sort", type=click.Choice(TypeSort), default=TypeSort.MASS
 )
-def stat(input_path: str, type_output: TypeOutput, type_sort: TypeSort) -> None:
+@click.option("--only-default-density", "only_default_density", is_flag=True)
+def stat(
+    input_path: str,
+    type_output: TypeOutput,
+    type_sort: TypeSort,
+    only_default_density: bool,
+) -> None:
     """
     Display stat about an assembly
     """
@@ -225,6 +246,8 @@ def stat(input_path: str, type_output: TypeOutput, type_sort: TypeSort) -> None:
     if type_output is TypeOutput.TREE:
         display_tree(tree_of_comp, type_sort)
     elif type_output is TypeOutput.LIST:
+        if only_default_density:
+            dict_of_comp = filter_density_list(dict_of_comp)
         display_list(dict_of_comp, type_sort)
     else:
         click.echo(
