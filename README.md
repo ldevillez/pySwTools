@@ -27,6 +27,14 @@ List of ressources that can be helpful when starting with the solidworks API:
 
 ## List of modules
 
+- CLI: handle all the modules
+- Config: handle the configuration
+- Ready-dxf: Prep the dxf outputed from SW to be laser cutted
+- Copy-full-assembly: Update the relative link from an assembly after a copy
+- Auto-export: export all the parts to `.stl` or `.dxf`
+- Stat: List all the parts from an assembly with their mass and density
+- Clean: List all the unused files from an assembly
+
 ### CLI
 It is the main module of this project. It allows you to select the actions that you want to apply. To directly get help from the tool simply type:
 ```
@@ -79,11 +87,6 @@ pyswtools ready-dxf /path/to/directory
 
 It will output a `directory_cleaned` directory with all the cleaned dxf. Do not include the `/` or `\` at the end of the path of the directory
 
-#### Features to come
-- [ ] Combine Lines
-- [ ] Combine Files
-- [ ] Add auto coloring
-- [ ] Add tests
 
 ### Copy-full-assembly
 This tool help you when copying multiple file or assembly. It will help you by updating path reference to new path reference:
@@ -136,3 +139,13 @@ You can select the sort mode with `--type-sort`:
 - `name`: sort with alphabetical order
 
 You can get only the elements with a default density (1000 Kg/m³) with the option `--only-default-density`. This option only works with a `type `list`
+
+### Clean
+This tool help you clean the directory of your project and remove unused files
+
+#### How to use
+
+```
+pyswtools clean PATH/TO/DIR/PROJECT/ PATH/TO/MAIN/ASSEMBLY
+```
+It will output all the solidworks files in `PATH/TO/DIR/PROJECT/` that are not used in the assembly.

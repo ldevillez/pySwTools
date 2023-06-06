@@ -6,12 +6,8 @@ import os
 import click
 
 # pylint: disable=relative-beyond-top-level
-from ..utils import check_system, check_system_verbose
-from ..config import get_config
-
-if check_system():
-    # pylint: disable=import-error
-    import win32com.client
+from ..utils import check_system_verbose
+from ..helper_sw import open_app, is_file, is_temp
 
 
 @click.command()
@@ -36,17 +32,14 @@ def copy_full_assembly(input_path, src_replace, target_replace) -> None:
     if not check_system_verbose():
         return
 
-    # Function + auto config
-    conf = get_config()
-    sw_app = win32com.client.Dispatch(
-        f"SldWorks.Application.{(int(conf.sw_version)-2012+20)}"
-    )
+    # Open app
+    sw_app = open_app()
 
     # Walk though the directory and each subdirectory
     for root, _, files in os.walk(input_path):
         for file in files:
             curr_path = os.path.abspath(os.path.join(root, file))
-            if ".SLDPRT" not in file or "~$" in file:
+            if not is_file(file) or is_temp(file):
                 continue
             print(f"- {file}")
 

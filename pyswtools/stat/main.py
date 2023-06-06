@@ -8,7 +8,7 @@ import click
 
 # pylint: disable=relative-beyond-top-level
 from ..utils import check_system, check_system_verbose
-from ..config import get_config
+from ..helper_sw import open_app_and_file, is_temp, is_assembly
 
 
 class TypeOutput(str, Enum):
@@ -202,24 +202,12 @@ def stat(
     if not check_system_verbose():
         return
 
-    if ".SLDASM" not in input_path or "~$" in input_path:
+    if not is_assembly(input_path) or is_temp(input_path):
         click.echo("Please select an assembly file (.SLDASM)")
         click.echo(f"{input_path} is not an assembly file")
         return
 
-    _, filename = os.path.split(input_path)
-
-    conf = get_config()
-
-    sw_app = win32com.client.Dispatch(
-        f"SldWorks.Application.{(int(conf.sw_version)-2012+20)}"
-    )
-
-    # Open the assembly
-    sw_doc = sw_app.OpenDoc6(os.path.abspath(input_path), 2, 1, "", VT_BYREF, VT_BYREF)
-
-    # Activate it
-    sw_app.ActivateDoc3(filename, True, 2, VT_BYREF)
+    _, sw_doc, filename = open_app_and_file(input_path)
 
     # Get list of components
     sw_comps = sw_doc.GetComponents(True)
