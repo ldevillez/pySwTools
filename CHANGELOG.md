@@ -4,6 +4,9 @@
 ### Added
 - Adding density info to stat module
 - Adding flag to stat module to get only elements with default density
+- Adding clean module
+- Adding function to get directly sw_app, sw_doc
+- Adding bool function to test if file is assembly, part or temporary
 ### Changed
 - Improving the output of the state module with tabular like output
 - Updating the doc in the README for the stat module
