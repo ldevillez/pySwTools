@@ -22,6 +22,7 @@ class TypeSort(str, Enum):
     """Class represeting an output type"""
 
     MASS = "mass"
+    MASS_PART = "mass-part"
     NAME = "name"
 
 
@@ -35,17 +36,116 @@ if check_system():
     VT_BYREF = win32com.client.VARIANT(pythoncom.VT_BYREF | pythoncom.VT_I4, -1)
 
 
-def filter_density_list(struct: dict):
+def filter_density_list(struct: dict) -> None:
+    """
+    Filter element from a list struct to get only the ones with a density differnt from 1000
+    """
     return {k: v for k, v in struct.items() if abs(v["density"] - 1000) < 1e-3}
 
 
-def filter_density_tree(struct: dict):
+def filter_density_tree(struct: dict) -> None:
+    """
+    Filter element from a tree struct to get only the ones with a density differnt from 1000
+    """
     return_struct = {}
     for k, v in struct.items():
         if (v["density"] - 1000) < 1e-4:
             return_struct[k] = v
             filter_density_tree(return_struct[k]["children"])
     struct = return_struct
+
+
+def remove_conf_tree(tree_struct: dict, dict_of_comp: dict) -> None:
+    """
+    Clean the name of a tree struct.
+    If there is only one configuration for a component, remove the configuration
+    Otherwise keep it.
+    """
+    remove_conf_with_list(tree_struct, dict_of_comp)
+    for elem in tree_struct:
+        remove_conf_tree(tree_struct[elem]["children"], dict_of_comp)
+
+
+def remove_conf_with_list(list_struct: dict, dict_of_comp: dict) -> None:
+    """
+    Clean the name of a tree struct with an additional list.
+    If the stripped name is in the list, remove the configuration
+    """
+    if len(list_struct) == 0:
+        return
+
+    list_of_name = list(list_struct.keys())
+
+    for name in list_of_name:
+        if strip_conf(name) in dict_of_comp:
+            list_struct[strip_conf(name)] = list_struct[name]
+            del list_struct[name]
+
+
+def remove_conf(list_struct: dict) -> None:
+    """
+    Clean the name of a list struct.
+    If there is only one configuration for a component, remove the configuration
+    Otherwise keep it.
+    """
+    if len(list_struct) == 0:
+        return
+
+    # Always strip one elem list
+    if len(list_struct) == 1:
+        name = list(list_struct.keys())[0]
+        list_struct[strip_conf(name)] = list_struct[name]
+        del list_struct[name]
+        return
+
+    # Get keys sorted by name
+    sorted_list = sort_key_struct(list_struct, TypeSort.NAME)
+
+    # Check first case
+    if strip_conf(sorted_list[0]) != strip_conf(sorted_list[1]):
+        # Rename
+        list_struct[strip_conf(sorted_list[0])] = list_struct[sorted_list[0]]
+        del list_struct[sorted_list[0]]
+
+    # Check last case
+    if strip_conf(sorted_list[-1]) != strip_conf(sorted_list[-2]):
+        # Rename
+        list_struct[strip_conf(sorted_list[-1])] = list_struct[sorted_list[-1]]
+        del list_struct[sorted_list[-1]]
+
+    for idx, name in enumerate(sorted_list[1:-1]):
+        # Check all middle cases
+        if strip_conf(name) != strip_conf(sorted_list[idx]) and strip_conf(
+            name
+        ) != strip_conf(sorted_list[idx + 2]):
+            list_struct[strip_conf(name)] = list_struct[name]
+            del list_struct[name]
+
+
+def remove_duplicate_conf(struct: dict) -> None:
+    """
+    Filter element from struct (tree or list) which have only different configuration names but same Mass
+    """
+
+    # Get elements sorted by mass part
+    sorted_list = sort_key_struct(struct, TypeSort.MASS_PART)
+    for idx, name in enumerate(sorted_list[:-1]):
+        # If the elem was removed
+        if name not in struct:
+            continue
+
+        # We test the following elements
+        for name_test in sorted_list[idx + 1 :]:
+            # if we do not have the same mass, we end
+            if abs(struct[name]["mass"] - struct[name_test]["mass"]) > 1e-5:
+                break
+            # We compare the names
+            if strip_conf(name_test) == strip_conf(name):
+                # We fused data
+                struct[name]["number"] += struct[name_test]["number"]
+                del struct[name_test]
+        if "children" in struct[name]:
+            remove_duplicate_conf(struct[name]["children"])
 
 
 def sort_key_struct(struct: dict, type_sort: TypeSort = TypeSort.MASS) -> list:
@@ -58,6 +158,12 @@ def sort_key_struct(struct: dict, type_sort: TypeSort = TypeSort.MASS) -> list:
         return sorted(
             struct.keys(),
             key=lambda i: struct[i]["mass"] * struct[i]["number"],
+            reverse=True,
+        )
+    if type_sort is TypeSort.MASS_PART:
+        return sorted(
+            struct.keys(),
+            key=lambda i: struct[i]["mass"],
             reverse=True,
         )
 
@@ -107,9 +213,22 @@ def display_list(list_struct: dict, type_sort: TypeSort = TypeSort.NAME) -> None
 
 def get_clean_name(sw_comp) -> str:
     """
-    Get the cleaned name from a component. remove the number from the component
+    Get the cleaned name from a component.
+    Rremove the number from the component.
+    Append the configuration
     """
-    return sw_comp.Name2.rpartition("-")[0].rpartition("/")[-1]
+    return (
+        sw_comp.Name2.rpartition("-")[0].rpartition("/")[-1]
+        + "@"
+        + sw_comp.ReferencedConfiguration
+    )
+
+
+def strip_conf(name: str) -> str:
+    """
+    Get the name without the configuration
+    """
+    return name.split("@")[0]
 
 
 def complete_info_on_list(sw_comp_children, dict_of_comp: dict) -> dict:
@@ -145,9 +264,13 @@ def complete_info_assembly(sw_comp, dict_of_comp: dict) -> dict:
     if sw_comp_name in dict_of_comp:
         dict_of_comp[sw_comp_name]["number"] += 1
     else:
-        # Otherwise get the mass
-        sw_comp_doc_ext = sw_comp.GetModelDoc2.Extension
+        # set the configuration
+        sw_comp_doc = sw_comp.GetModelDoc2
+        sw_comp_doc.ShowConfiguration2(sw_comp.ReferencedConfiguration)
+        # Get extension manager
+        sw_comp_doc_ext = sw_comp_doc.Extension
         sw_mass_property = sw_comp_doc_ext.CreateMassProperty2
+        # Get mass and density
         sw_mass = sw_mass_property.Mass if sw_mass_property is not None else 0
         sw_density = sw_mass_property.Density if sw_mass_property is not None else 0
 
@@ -231,7 +354,11 @@ def stat(
         }
     }
 
+    remove_duplicate_conf(dict_of_comp)
+    remove_conf(dict_of_comp)
     if type_output is TypeOutput.TREE:
+        remove_duplicate_conf(tree_of_comp)
+        remove_conf_tree(tree_of_comp, dict_of_comp)
         display_tree(tree_of_comp, type_sort)
     elif type_output is TypeOutput.LIST:
         if only_default_density:
