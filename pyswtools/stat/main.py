@@ -171,6 +171,9 @@ def sort_key_struct(struct: dict, type_sort: TypeSort = TypeSort.MASS) -> list:
 
 
 def print_header():
+    """
+    Display the header of the output
+    """
     header = f"{'Name':<50} | {'Mtot':<5} | {'n':<3} | {'Mpart':<6} | {'Density':<7}  "
     click.echo(header)
     click.echo("-" * len(header))
@@ -336,7 +339,7 @@ def stat(
     sw_comps = sw_doc.GetComponents(True)
 
     # Empty struct to fill
-    assembly_name = filename.rpartition(".")[-0]
+    assembly_name = filename.rpartition(".")[-0] + "@" + sw_doc.GetConfigurationNames[0]
     dict_of_comp = {
         f"{assembly_name}": {
             "mass": sw_doc.Extension.CreateMassProperty2.Mass,
