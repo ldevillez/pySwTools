@@ -2,6 +2,14 @@
 
 ## [Unreleased]
 ### Added
+### Changed
+### Deprecated
+### Removed
+### Fixed
+### Security
+
+## v0.7.0 - 2023/06/19
+### Added
 - Adding density info to stat module
 - Adding flag to stat module to get only elements with default density
 - Adding clean module
