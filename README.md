@@ -135,7 +135,8 @@ You can select the display mode with `--type-output`:
 - `list`: It will output to a single list
 
 You can select the sort mode with `--type-sort`:
-- `mass`: (default) sort with a decreasing mass
+- `mass`: (default) sort with a decreasing total mass
+- `mass-part`: sort with a decreasing part mass
 - `name`: sort with alphabetical order
 
 You can get only the elements with a default density (1000 Kg/m³) with the option `--only-default-density`. This option only works with a `type `list`

@@ -7,6 +7,8 @@
 - Adding clean module
 - Adding function to get directly sw_app, sw_doc
 - Adding bool function to test if file is assembly, part or temporary
+- Adding sorting option to mass of the part
+- Handling conf in the stat module
 ### Changed
 - Improving the output of the state module with tabular like output
 - Updating the doc in the README for the stat module
