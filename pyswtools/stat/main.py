@@ -240,6 +240,10 @@ def complete_info_on_list(sw_comp_children, dict_of_comp: dict) -> dict:
     """
     children = {}
     for sw_child in sw_comp_children:
+        # Check if component is suppressed
+        if sw_child.GetSuppression2 == 0:
+            continue
+
         # Get the name
         sw_child_name = get_clean_name(sw_child)
 

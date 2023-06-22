@@ -6,6 +6,7 @@
 ### Deprecated
 ### Removed
 ### Fixed
+- Suppressed components are not counted in the stat module
 ### Security
 
 ## v0.7.0 - 2023/06/19
