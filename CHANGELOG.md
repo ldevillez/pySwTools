@@ -6,6 +6,7 @@
 ### Deprecated
 ### Removed
 ### Fixed
+- The cleaning stat module is not perturbed by lower and uppercase 
 ### Security
 
 ## v0.7.0 - 2023/06/19

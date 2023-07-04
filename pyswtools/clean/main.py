@@ -6,17 +6,12 @@ import os
 import click
 
 # pylint: disable=relative-beyond-top-level
-from ..utils import check_system, check_system_verbose
-from ..helper_sw import open_app_and_file, is_assembly, is_temp, is_file
+from ..utils import check_system, check_system_verbose, ext_to_lower_case
+
 
 if check_system():
     # pylint: disable=import-error
-    import win32com.client
-    import pythoncom
-
-    Views = []
-    VT_Views = win32com.client.VARIANT(pythoncom.VT_VARIANT, Views)
-    VT_BYREF = win32com.client.VARIANT(pythoncom.VT_BYREF | pythoncom.VT_I4, -1)
+    from ..helper_sw import open_app_and_file, is_assembly, is_temp, is_file
 
 
 def list_component(sw_comps, list_of_comps):
@@ -24,7 +19,7 @@ def list_component(sw_comps, list_of_comps):
     Add to `list_of_comps` the elements of sw_comps recursively
     """
     for sw_comp in sw_comps:
-        sw_path = sw_comp.GetPathName
+        sw_path = ext_to_lower_case(sw_comp.GetPathName)
 
         if sw_path not in list_of_comps:
             list_of_comps.append(sw_path)
@@ -63,13 +58,14 @@ def clean(dir_path: str, assembly_path: str) -> None:
 
     _, sw_doc, _ = open_app_and_file(assembly_path)
 
-    list_of_comps = [os.path.abspath(assembly_path)]
+    list_of_comps = [ext_to_lower_case(os.path.abspath(assembly_path))]
 
     sw_comps = sw_doc.GetComponents(True)
     list_component(sw_comps, list_of_comps)
 
     for root, _, files in os.walk(dir_path):
         for file in files:
+            file = ext_to_lower_case(file)
             curr_path = os.path.abspath(os.path.join(root, file))
             if (is_assembly(file) or is_file(file)) and not is_temp(file):
                 if curr_path not in list_of_comps:
