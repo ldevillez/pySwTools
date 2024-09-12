@@ -271,15 +271,21 @@ def complete_info_assembly(sw_comp, dict_of_comp: dict) -> dict:
     if sw_comp_name in dict_of_comp:
         dict_of_comp[sw_comp_name]["number"] += 1
     else:
+        sw_mass = 0
+        sw_density = 0
         # set the configuration
         sw_comp_doc = sw_comp.GetModelDoc2
-        sw_comp_doc.ShowConfiguration2(sw_comp.ReferencedConfiguration)
-        # Get extension manager
-        sw_comp_doc_ext = sw_comp_doc.Extension
-        sw_mass_property = sw_comp_doc_ext.CreateMassProperty2
-        # Get mass and density
-        sw_mass = sw_mass_property.Mass if sw_mass_property is not None else 0
-        sw_density = sw_mass_property.Density if sw_mass_property is not None else 0
+        if sw_comp_doc is not None:
+            sw_comp_doc.ShowConfiguration2(sw_comp.ReferencedConfiguration)
+            # Get extension manager
+            sw_comp_doc_ext = sw_comp_doc.Extension
+            sw_mass_property = sw_comp_doc_ext.CreateMassProperty2
+
+            # Get mass and density
+            sw_mass = sw_mass_property.Mass if sw_mass_property is not None else 0
+            sw_density = sw_mass_property.Density if sw_mass_property is not None else 0
+        else:
+            click.echo(f"Could not evaluate {sw_comp_name}")
 
         # Create an new entity in the general dict
         dict_of_comp[sw_comp_name] = {
