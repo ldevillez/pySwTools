@@ -6,6 +6,8 @@
 ### Deprecated
 ### Removed
 ### Fixed
+- Do not count suppressed components in the stat module
+- Add condition to avoid crash on non readable masss properties
 ### Security
 
 ## v0.7.0 - 2023/06/19
