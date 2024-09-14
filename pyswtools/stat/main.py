@@ -3,27 +3,13 @@ Give stat from an assembly
 """
 
 import os
-from enum import Enum
 import click
 
 # pylint: disable=relative-beyond-top-level
 from ..utils import check_system, check_system_verbose
 from ..helper_sw import open_app_and_file, is_temp, is_assembly
 
-
-class TypeOutput(str, Enum):
-    """Class represeting an output type"""
-
-    TREE = "tree"
-    LIST = "list"
-
-
-class TypeSort(str, Enum):
-    """Class represeting an output type"""
-
-    MASS = "mass"
-    MASS_PART = "mass-part"
-    NAME = "name"
+from .definitions import TypeComponent, TypeOutput, TypeSort, StatComponent
 
 
 if check_system():
@@ -40,7 +26,7 @@ def filter_density_list(struct: dict) -> None:
     """
     Filter element from a list struct to get only the ones with a density differnt from 1000
     """
-    return {k: v for k, v in struct.items() if abs(v["density"] - 1000) < 1e-3}
+    return {k: v for k, v in struct.items() if abs(v.density - 1000) < 1e-3}
 
 
 def filter_density_tree(struct: dict) -> None:
@@ -49,9 +35,9 @@ def filter_density_tree(struct: dict) -> None:
     """
     return_struct = {}
     for k, v in struct.items():
-        if (v["density"] - 1000) < 1e-4:
+        if (v.density - 1000) < 1e-4:
             return_struct[k] = v
-            filter_density_tree(return_struct[k]["children"])
+            filter_density_tree(return_struct[k].children)
     struct = return_struct
 
 
@@ -63,7 +49,7 @@ def remove_conf_tree(tree_struct: dict, dict_of_comp: dict) -> None:
     """
     remove_conf_with_list(tree_struct, dict_of_comp)
     for elem in tree_struct:
-        remove_conf_tree(tree_struct[elem]["children"], dict_of_comp)
+        remove_conf_tree(tree_struct[elem].children, dict_of_comp)
 
 
 def remove_conf_with_list(list_struct: dict, dict_of_comp: dict) -> None:
@@ -137,15 +123,15 @@ def remove_duplicate_conf(struct: dict) -> None:
         # We test the following elements
         for name_test in sorted_list[idx + 1 :]:
             # if we do not have the same mass, we end
-            if abs(struct[name]["mass"] - struct[name_test]["mass"]) > 1e-5:
+            if abs(struct[name].mass - struct[name_test].mass) > 1e-5:
                 break
             # We compare the names
             if strip_conf(name_test) == strip_conf(name):
                 # We fused data
-                struct[name]["number"] += struct[name_test]["number"]
+                struct[name].number += struct[name_test].number
                 del struct[name_test]
-        if "children" in struct[name]:
-            remove_duplicate_conf(struct[name]["children"])
+        if len(struct[name].children) > 0:
+            remove_duplicate_conf(struct[name].children)
 
 
 def sort_key_struct(struct: dict, type_sort: TypeSort = TypeSort.MASS) -> list:
@@ -157,13 +143,13 @@ def sort_key_struct(struct: dict, type_sort: TypeSort = TypeSort.MASS) -> list:
     if type_sort is TypeSort.MASS:
         return sorted(
             struct.keys(),
-            key=lambda i: struct[i]["mass"] * struct[i]["number"],
+            key=lambda i: struct[i].mass * struct[i].number,
             reverse=True,
         )
     if type_sort is TypeSort.MASS_PART:
         return sorted(
             struct.keys(),
-            key=lambda i: struct[i]["mass"],
+            key=lambda i: struct[i].mass,
             reverse=True,
         )
 
@@ -194,13 +180,13 @@ def display_tree(
         if idx == n - 1:
             char = "┕━"
         click.echo(
-            f"{indent + char + ' ' + elem :<50} | {tree_struct_mass[elem]['mass'] * tree_struct_mass[elem]['number']:5.3f} | {tree_struct_mass[elem]['number']:3d} | {tree_struct_mass[elem]['mass']:6.4f} | {tree_struct_mass[elem]['density']:6.4f}"
+            f"{indent + char + ' ' + elem :<50} | {tree_struct_mass[elem].mass * tree_struct_mass[elem].number:5.3f} | {tree_struct_mass[elem].number:3d} | {tree_struct_mass[elem].mass:6.4f} | {tree_struct_mass[elem].density:6.4f}"
         )
-        if len(tree_struct_mass[elem]["children"]) > 0:
+        if len(tree_struct_mass[elem].children) > 0:
             char = "│ "
             if idx == n - 1:
                 char = "  "
-            display_tree(tree_struct_mass[elem]["children"], type_sort, indent + char)
+            display_tree(tree_struct_mass[elem].children, type_sort, indent + char)
 
 
 def display_list(list_struct: dict, type_sort: TypeSort = TypeSort.NAME) -> None:
@@ -210,7 +196,7 @@ def display_list(list_struct: dict, type_sort: TypeSort = TypeSort.NAME) -> None
     print_header()
     for elem in sort_key_struct(list_struct, type_sort):
         click.echo(
-            f"{'- ' + elem :<50} | {list_struct[elem]['mass'] * list_struct[elem]['number']:5.3f} | {list_struct[elem]['number']:3d} | {list_struct[elem]['mass']:6.4f} | {list_struct[elem]['density']:6.4f}"
+            f"{'- ' + elem :<50} | {list_struct[elem].mass * list_struct[elem].number:5.3f} | {list_struct[elem].number:3d} | {list_struct[elem].mass:6.4f} | {list_struct[elem].density:6.4f}"
         )
 
 
@@ -254,7 +240,7 @@ def complete_info_on_list(sw_comp_children, dict_of_comp: dict) -> dict:
         if sw_child_name not in children:
             children[sw_child_name] = child
         else:
-            children[sw_child_name]["number"] += 1
+            children[sw_child_name].number += 1
 
     return children
 
@@ -269,7 +255,7 @@ def complete_info_assembly(sw_comp, dict_of_comp: dict) -> dict:
 
     # If already there only increase the number
     if sw_comp_name in dict_of_comp:
-        dict_of_comp[sw_comp_name]["number"] += 1
+        dict_of_comp[sw_comp_name].number += 1
     else:
         sw_mass = 0
         sw_density = 0
@@ -288,23 +274,21 @@ def complete_info_assembly(sw_comp, dict_of_comp: dict) -> dict:
             click.echo(f"Could not evaluate {sw_comp_name}")
 
         # Create an new entity in the general dict
-        dict_of_comp[sw_comp_name] = {
-            "number": 1,
-            "mass": sw_mass,
-            "density": sw_density,
-        }
+        dict_of_comp[sw_comp_name] = StatComponent(
+            mass=sw_mass, density=sw_density, number=1, children=[]
+        )
 
     # Get info about children
     sw_comp_children = sw_comp.GetChildren
     children = complete_info_on_list(sw_comp_children, dict_of_comp)
 
     # Create the entry in the tree dict
-    return {
-        "mass": dict_of_comp[sw_comp_name]["mass"],
-        "density": dict_of_comp[sw_comp_name]["density"],
-        "number": 1,
-        "children": children,
-    }
+    return StatComponent(
+        mass=dict_of_comp[sw_comp_name].mass,
+        density=dict_of_comp[sw_comp_name].density,
+        number=1,
+        children=children,
+    )
 
 
 @click.command()
@@ -325,11 +309,15 @@ def complete_info_assembly(sw_comp, dict_of_comp: dict) -> dict:
 @click.option(
     "--type-sort", "type_sort", type=click.Choice(TypeSort), default=TypeSort.MASS
 )
+@click.option(
+    "--filter", "filter", type=click.Choice(TypeComponent), default=TypeComponent.ALL
+)
 @click.option("--only-default-density", "only_default_density", is_flag=True)
 def stat(
     input_path: str,
     type_output: TypeOutput,
     type_sort: TypeSort,
+    filter: TypeComponent,
     only_default_density: bool,
 ) -> None:
     """
@@ -351,20 +339,21 @@ def stat(
     # Empty struct to fill
     assembly_name = filename.rpartition(".")[-0] + "@" + sw_doc.GetConfigurationNames[0]
     dict_of_comp = {
-        f"{assembly_name}": {
-            "mass": sw_doc.Extension.CreateMassProperty2.Mass,
-            "density": sw_doc.Extension.CreateMassProperty2.Density,
-            "number": 1,
-        }
+        assembly_name: StatComponent(
+            mass=sw_doc.Extension.CreateMassProperty2.Mass,
+            density=sw_doc.Extension.CreateMassProperty2.Density,
+            number=1,
+            children=[],
+        )
     }
 
     tree_of_comp = {
-        f"{assembly_name}": {
-            "mass": dict_of_comp[assembly_name]["mass"],
-            "density": dict_of_comp[assembly_name]["density"],
-            "number": 1,
-            "children": complete_info_on_list(sw_comps, dict_of_comp),
-        }
+        assembly_name: StatComponent(
+            mass=dict_of_comp[assembly_name].mass,
+            density=dict_of_comp[assembly_name].density,
+            number=1,
+            children=complete_info_on_list(sw_comps, dict_of_comp),
+        )
     }
 
     remove_duplicate_conf(dict_of_comp)
