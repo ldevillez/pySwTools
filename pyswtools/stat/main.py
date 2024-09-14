@@ -82,8 +82,12 @@ def remove_conf_with_list(list_struct: dict, dict_of_comp: dict) -> None:
     list_of_name = list(list_struct.keys())
 
     for name in list_of_name:
-        if strip_conf(name) in dict_of_comp:
-            list_struct[strip_conf(name)] = list_struct[name]
+        stripped_name = strip_conf(name)
+        if stripped_name in dict_of_comp:
+            if stripped_name not in list_struct:
+                list_struct[stripped_name] = list_struct[name]
+            else:
+                list_struct[stripped_name].number += list_struct[name].number
             del list_struct[name]
 
 

@@ -8,6 +8,7 @@
 ### Deprecated
 ### Removed
 ### Fixed
+- Fixing an issue with the configuration name removal. Some parts were not correctly counted in the tree display.
 ### Security
 
 ## v0.7.1 - 2024/09/12
