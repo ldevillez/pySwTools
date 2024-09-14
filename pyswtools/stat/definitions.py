@@ -31,6 +31,7 @@ class StatComponent:
     density: float
     number: int
     children: list
+    typeComponent: TypeComponent
 
     def dict(self):
         return {k: v for k, v in asdict(self).items()}

@@ -41,6 +41,25 @@ def filter_density_tree(struct: dict) -> None:
     struct = return_struct
 
 
+def filter_component_type(
+    struct: dict, type_component=TypeComponent.ALL, is_tree_struct=False
+) -> None:
+    """
+    Filter element from a list struct to get one the ones with the matching TypeComponent
+    """
+    if type_component.value == TypeComponent.ALL.value:
+        return
+
+    if type_component.value == TypeComponent.PART.value and is_tree_struct:
+        return
+
+    for k, v in list(struct.items()):
+        if v.typeComponent.value != type_component.value:
+            struct.pop(k)
+        else:
+            filter_component_type(v.children, type_component, is_tree_struct)
+
+
 def remove_conf_tree(tree_struct: dict, dict_of_comp: dict) -> None:
     """
     Clean the name of a tree struct.
@@ -160,13 +179,15 @@ def print_header():
     """
     Display the header of the output
     """
-    header = f"{'Name':<50} | {'Mtot':<5} | {'n':<3} | {'Mpart':<6} | {'Density':<7}  "
+    header = f"{'Name':<50} | {'Mtot':<5} | {'n':<3} | {'Mpart':<6} | {'Density':<7} | {'Comp':<4} "
     click.echo(header)
     click.echo("-" * len(header))
 
 
 def display_tree(
-    tree_struct_mass: dict, type_sort: TypeSort = TypeSort.NAME, indent: str = ""
+    tree_struct_mass: dict,
+    type_sort: TypeSort = TypeSort.NAME,
+    indent: str = "",
 ) -> None:
     """
     Display a tree struct recursively
@@ -180,13 +201,17 @@ def display_tree(
         if idx == n - 1:
             char = "┕━"
         click.echo(
-            f"{indent + char + ' ' + elem :<50} | {tree_struct_mass[elem].mass * tree_struct_mass[elem].number:5.3f} | {tree_struct_mass[elem].number:3d} | {tree_struct_mass[elem].mass:6.4f} | {tree_struct_mass[elem].density:6.4f}"
+            f"{indent + char + ' ' + elem :<50} | {tree_struct_mass[elem].mass * tree_struct_mass[elem].number:5.3f} | {tree_struct_mass[elem].number:3d} | {tree_struct_mass[elem].mass:6.4f} | {tree_struct_mass[elem].density:6.2f} | {'Part' if tree_struct_mass[elem].typeComponent == TypeComponent.PART else 'Ass.'}"
         )
         if len(tree_struct_mass[elem].children) > 0:
             char = "│ "
             if idx == n - 1:
                 char = "  "
-            display_tree(tree_struct_mass[elem].children, type_sort, indent + char)
+            display_tree(
+                tree_struct_mass[elem].children,
+                type_sort,
+                indent + char,
+            )
 
 
 def display_list(list_struct: dict, type_sort: TypeSort = TypeSort.NAME) -> None:
@@ -196,7 +221,7 @@ def display_list(list_struct: dict, type_sort: TypeSort = TypeSort.NAME) -> None
     print_header()
     for elem in sort_key_struct(list_struct, type_sort):
         click.echo(
-            f"{'- ' + elem :<50} | {list_struct[elem].mass * list_struct[elem].number:5.3f} | {list_struct[elem].number:3d} | {list_struct[elem].mass:6.4f} | {list_struct[elem].density:6.4f}"
+            f"{'- ' + elem :<50} | {list_struct[elem].mass * list_struct[elem].number:5.3f} | {list_struct[elem].number:3d} | {list_struct[elem].mass:6.4f} | {list_struct[elem].density:6.2f} | {'Part' if list_struct[elem].typeComponent == TypeComponent.PART else 'Ass.'}"
         )
 
 
@@ -275,7 +300,15 @@ def complete_info_assembly(sw_comp, dict_of_comp: dict) -> dict:
 
         # Create an new entity in the general dict
         dict_of_comp[sw_comp_name] = StatComponent(
-            mass=sw_mass, density=sw_density, number=1, children=[]
+            mass=sw_mass,
+            density=sw_density,
+            number=1,
+            children=[],
+            typeComponent=(
+                TypeComponent.ASSEMBLY
+                if len(sw_comp.GetChildren) > 0
+                else TypeComponent.PART
+            ),
         )
 
     # Get info about children
@@ -287,6 +320,9 @@ def complete_info_assembly(sw_comp, dict_of_comp: dict) -> dict:
         mass=dict_of_comp[sw_comp_name].mass,
         density=dict_of_comp[sw_comp_name].density,
         number=1,
+        typeComponent=(
+            TypeComponent.ASSEMBLY if len(sw_comp_children) > 0 else TypeComponent.PART
+        ),
         children=children,
     )
 
@@ -310,14 +346,17 @@ def complete_info_assembly(sw_comp, dict_of_comp: dict) -> dict:
     "--type-sort", "type_sort", type=click.Choice(TypeSort), default=TypeSort.MASS
 )
 @click.option(
-    "--filter", "filter", type=click.Choice(TypeComponent), default=TypeComponent.ALL
+    "--filter",
+    "type_component",
+    type=click.Choice(TypeComponent),
+    default=TypeComponent.ALL,
 )
 @click.option("--only-default-density", "only_default_density", is_flag=True)
 def stat(
     input_path: str,
     type_output: TypeOutput,
     type_sort: TypeSort,
-    filter: TypeComponent,
+    type_component: TypeComponent,
     only_default_density: bool,
 ) -> None:
     """
@@ -343,6 +382,7 @@ def stat(
             mass=sw_doc.Extension.CreateMassProperty2.Mass,
             density=sw_doc.Extension.CreateMassProperty2.Density,
             number=1,
+            typeComponent=TypeComponent.ASSEMBLY,
             children=[],
         )
     }
@@ -352,6 +392,7 @@ def stat(
             mass=dict_of_comp[assembly_name].mass,
             density=dict_of_comp[assembly_name].density,
             number=1,
+            typeComponent=TypeComponent.ASSEMBLY,
             children=complete_info_on_list(sw_comps, dict_of_comp),
         )
     }
@@ -361,10 +402,12 @@ def stat(
     if type_output is TypeOutput.TREE:
         remove_duplicate_conf(tree_of_comp)
         remove_conf_tree(tree_of_comp, dict_of_comp)
+        filter_component_type(tree_of_comp, type_component, is_tree_struct=True)
         display_tree(tree_of_comp, type_sort)
     elif type_output is TypeOutput.LIST:
         if only_default_density:
             dict_of_comp = filter_density_list(dict_of_comp)
+        filter_component_type(dict_of_comp, type_component)
         display_list(dict_of_comp, type_sort)
     else:
         click.echo(

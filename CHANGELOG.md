@@ -2,6 +2,8 @@
 
 ## [Unreleased]
 ### Added
+- Adding the type of component into the display of the stat module
+- Adding a flag to filter the type of components
 ### Changed
 ### Deprecated
 ### Removed
