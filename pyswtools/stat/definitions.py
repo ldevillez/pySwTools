@@ -26,12 +26,21 @@ class TypeSort(str, Enum):
 
 
 @dataclass
+class StatComponentTree:
+    number: int
+    children: list
+
+    def dict(self):
+        return {k: v for k, v in asdict(self).items()}
+
+
+@dataclass
 class StatComponent:
     mass: float
     density: float
     number: int
-    children: list
     typeComponent: TypeComponent
+    numberDrawing: int
 
     def dict(self):
         return {k: v for k, v in asdict(self).items()}

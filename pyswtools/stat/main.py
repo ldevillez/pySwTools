@@ -7,9 +7,15 @@ import click
 
 # pylint: disable=relative-beyond-top-level
 from ..utils import check_system, check_system_verbose
-from ..helper_sw import open_app_and_file, is_temp, is_assembly
+from ..helper_sw import open_app_and_file, is_temp, is_assembly, open_drawing
 
-from .definitions import TypeComponent, TypeOutput, TypeSort, StatComponent
+from .definitions import (
+    TypeComponent,
+    TypeOutput,
+    TypeSort,
+    StatComponent,
+    StatComponentTree,
+)
 
 
 if check_system():
@@ -42,22 +48,39 @@ def filter_density_tree(struct: dict) -> None:
 
 
 def filter_component_type(
-    struct: dict, type_component=TypeComponent.ALL, is_tree_struct=False
+    tree_struct: dict, list_struct: dict, type_component=TypeComponent.ALL
 ) -> None:
     """
-    Filter element from a list struct to get one the ones with the matching TypeComponent
+    Filter element from a list and tree struct to get one the ones with the matching TypeComponent
     """
     if type_component.value == TypeComponent.ALL.value:
         return
 
-    if type_component.value == TypeComponent.PART.value and is_tree_struct:
-        return
+    if type_component.value == TypeComponent.ASSEMBLY.value:
+        filter_component_type_tree(tree_struct, list_struct)
 
-    for k, v in list(struct.items()):
+    for k, v in list(list_struct.items()):
         if v.typeComponent.value != type_component.value:
-            struct.pop(k)
+            list_struct.pop(k)
+
+
+def filter_component_type_tree(tree_struct: dict, list_struct: dict) -> None:
+    """
+    Filter elements from a list
+    """
+    for k, v in list(tree_struct.items()):
+        if list_struct[k].typeComponent.value == TypeComponent.PART.value:
+            tree_struct.pop(k)
         else:
-            filter_component_type(v.children, type_component, is_tree_struct)
+            filter_component_type_tree(v.children, list_struct)
+
+
+def remove_confs(tree_struct: dict, dict_of_comp: dict) -> None:
+    """
+    Clean the name of the tree and list struct.
+    """
+    remove_conf_list(dict_of_comp)
+    remove_conf_tree(tree_struct, dict_of_comp)
 
 
 def remove_conf_tree(tree_struct: dict, dict_of_comp: dict) -> None:
@@ -91,7 +114,7 @@ def remove_conf_with_list(list_struct: dict, dict_of_comp: dict) -> None:
             del list_struct[name]
 
 
-def remove_conf(list_struct: dict) -> None:
+def remove_conf_list(list_struct: dict) -> None:
     """
     Clean the name of a list struct.
     If there is only one configuration for a component, remove the configuration
@@ -131,7 +154,34 @@ def remove_conf(list_struct: dict) -> None:
             del list_struct[name]
 
 
-def remove_duplicate_conf(struct: dict) -> None:
+def remove_duplicate_confs(tree_struct: dict, dict_struct: dict) -> None:
+    """
+    Filter element from a tree and list struct which have only different configuration names but same Mass
+    """
+    remove_duplicate_conf_list(dict_struct)
+    remove_duplicate_conf_tree(tree_struct, dict_struct)
+
+
+def remove_duplicate_conf_tree(tree_struct: dict, dict_struct: dict) -> None:
+    """
+    Filter element from struct (tree or list) which have only different configuration names but same Mass
+    """
+    for name in list(tree_struct.keys()):
+        # If the name was removed from the dict strict
+        if name not in dict_struct:
+            stripped_name = strip_conf(name)
+
+            # If the occurence is not present yet
+            if stripped_name not in tree_struct:
+                tree_struct[stripped_name] = StatComponentTree(number=0, children=[])
+            tree_struct[stripped_name].number += tree_struct[name].number
+            tree_struct[stripped_name].children.append(tree_struct[name].children)
+
+        # Clean the childrens
+        remove_duplicate_conf_tree(tree_struct[name].children, dict_struct)
+
+
+def remove_duplicate_conf_list(struct: dict) -> None:
     """
     Filter element from struct (tree or list) which have only different configuration names but same Mass
     """
@@ -153,8 +203,6 @@ def remove_duplicate_conf(struct: dict) -> None:
                 # We fused data
                 struct[name].number += struct[name_test].number
                 del struct[name_test]
-        if len(struct[name].children) > 0:
-            remove_duplicate_conf(struct[name].children)
 
 
 def sort_key_struct(struct: dict, type_sort: TypeSort = TypeSort.MASS) -> list:
@@ -179,24 +227,49 @@ def sort_key_struct(struct: dict, type_sort: TypeSort = TypeSort.MASS) -> list:
     return struct.keys()
 
 
+def sort_key_struct_tree(
+    tree_struct: dict, dict_struct: dict, type_sort: TypeSort = TypeSort.MASS
+) -> list:
+    """
+    Sort a dict struct following a given sort
+    """
+    if type_sort is TypeSort.NAME:
+        return sorted(tree_struct.keys(), key=str.lower)
+    if type_sort is TypeSort.MASS:
+        return sorted(
+            tree_struct.keys(),
+            key=lambda i: dict_struct[i].mass * tree_struct[i].number,
+            reverse=True,
+        )
+    if type_sort is TypeSort.MASS_PART:
+        return sorted(
+            tree_struct.keys(),
+            key=lambda i: dict_struct[i].mass,
+            reverse=True,
+        )
+
+    return tree_struct.keys()
+
+
 def print_header():
     """
     Display the header of the output
     """
-    header = f"{'Name':<50} | {'Mtot':<5} | {'n':<3} | {'Mpart':<6} | {'Density':<7} | {'Comp':<4} "
+    header = f"{'Name':<50} | {'Mtot':<5} | {'n':<3} | {'Mpart':<6} | {'Density':<7} | {'Comp':<4} | {'Drw':<3}"
     click.echo(header)
     click.echo("-" * len(header))
 
 
 def display_tree(
     tree_struct_mass: dict,
+    dict_struct_mass: dict,
     type_sort: TypeSort = TypeSort.NAME,
     indent: str = "",
 ) -> None:
     """
     Display a tree struct recursively
     """
-    sorted_list = sort_key_struct(tree_struct_mass, type_sort)
+    sorted_list = sort_key_struct_tree(tree_struct_mass, dict_struct_mass, type_sort)
     n = len(sorted_list)
     if indent == "":
         print_header()
@@ -205,7 +278,7 @@ def display_tree(
         if idx == n - 1:
             char = "┕━"
         click.echo(
-            f"{indent + char + ' ' + elem :<50} | {tree_struct_mass[elem].mass * tree_struct_mass[elem].number:5.3f} | {tree_struct_mass[elem].number:3d} | {tree_struct_mass[elem].mass:6.4f} | {tree_struct_mass[elem].density:6.2f} | {'Part' if tree_struct_mass[elem].typeComponent == TypeComponent.PART else 'Ass.'}"
+            f"{indent + char + ' ' + elem :<50} | {dict_struct_mass[elem].mass * tree_struct_mass[elem].number:5.3f} | {tree_struct_mass[elem].number:3d} | {dict_struct_mass[elem].mass:6.4f} | {dict_struct_mass[elem].density:6.2f} | {'Part' if dict_struct_mass[elem].typeComponent == TypeComponent.PART else 'Ass.'} | {dict_struct_mass[elem].numberDrawing:3d}"
         )
         if len(tree_struct_mass[elem].children) > 0:
             char = "│ "
@@ -213,6 +286,7 @@ def display_tree(
                 char = "  "
             display_tree(
                 tree_struct_mass[elem].children,
+                dict_struct_mass,
                 type_sort,
                 indent + char,
             )
@@ -225,7 +299,7 @@ def display_list(list_struct: dict, type_sort: TypeSort = TypeSort.NAME) -> None
     print_header()
     for elem in sort_key_struct(list_struct, type_sort):
         click.echo(
-            f"{'- ' + elem :<50} | {list_struct[elem].mass * list_struct[elem].number:5.3f} | {list_struct[elem].number:3d} | {list_struct[elem].mass:6.4f} | {list_struct[elem].density:6.2f} | {'Part' if list_struct[elem].typeComponent == TypeComponent.PART else 'Ass.'}"
+            f"{'- ' + elem :<50} | {list_struct[elem].mass * list_struct[elem].number:5.3f} | {list_struct[elem].number:3d} | {list_struct[elem].mass:6.4f} | {list_struct[elem].density:6.2f} | {'Part' if list_struct[elem].typeComponent == TypeComponent.PART else 'Ass.'} | {list_struct[elem].numberDrawing:3d}"
         )
 
 
@@ -247,6 +321,34 @@ def strip_conf(name: str) -> str:
     Get the name without the configuration
     """
     return name.split("@")[0]
+
+
+def fill_drawing_dependencies(sw_app, input_path: str, struct: dict):
+    """
+    Get the number of drawings related to each parts
+    """
+    list_of_drawings = []
+    for r, _, fs in os.walk(os.path.dirname(input_path)):
+        for f in fs:
+            if "SLDDRW" in f and "~$" not in f:
+                list_of_drawings.append(os.path.join(r, f))
+
+    parts_in_plan_dict = {}
+    for drawing_path in list_of_drawings:
+        parts_in_plan = sw_app.GetDocumentDependencies2(
+            os.path.abspath(drawing_path), False, True, False
+        )
+        for part_in_plan in parts_in_plan[::2]:
+            if part_in_plan not in parts_in_plan_dict:
+                parts_in_plan_dict[part_in_plan] = 1
+            else:
+                parts_in_plan_dict[part_in_plan] += 1
+
+    for name in struct.keys():
+        if strip_conf(name) in parts_in_plan_dict:
+            struct[name].numberDrawing = parts_in_plan_dict[strip_conf(name)]
+    # TODO: handle configurations
+    return parts_in_plan_dict
 
 
 def complete_info_on_list(sw_comp_children, dict_of_comp: dict) -> dict:
@@ -307,12 +409,12 @@ def complete_info_assembly(sw_comp, dict_of_comp: dict) -> dict:
             mass=sw_mass,
             density=sw_density,
             number=1,
-            children=[],
             typeComponent=(
                 TypeComponent.ASSEMBLY
                 if len(sw_comp.GetChildren) > 0
                 else TypeComponent.PART
             ),
+            numberDrawing=0,
         )
 
     # Get info about children
@@ -320,13 +422,8 @@ def complete_info_assembly(sw_comp, dict_of_comp: dict) -> dict:
     children = complete_info_on_list(sw_comp_children, dict_of_comp)
 
     # Create the entry in the tree dict
-    return StatComponent(
-        mass=dict_of_comp[sw_comp_name].mass,
-        density=dict_of_comp[sw_comp_name].density,
+    return StatComponentTree(
         number=1,
-        typeComponent=(
-            TypeComponent.ASSEMBLY if len(sw_comp_children) > 0 else TypeComponent.PART
-        ),
         children=children,
     )
 
@@ -374,7 +471,7 @@ def stat(
         click.echo(f"{input_path} is not an assembly file")
         return
 
-    _, sw_doc, filename = open_app_and_file(input_path)
+    sw_app, sw_doc, filename = open_app_and_file(input_path)
 
     # Get list of components
     sw_comps = sw_doc.GetComponents(True)
@@ -387,31 +484,30 @@ def stat(
             density=sw_doc.Extension.CreateMassProperty2.Density,
             number=1,
             typeComponent=TypeComponent.ASSEMBLY,
-            children=[],
+            numberDrawing=0,
         )
     }
 
     tree_of_comp = {
-        assembly_name: StatComponent(
-            mass=dict_of_comp[assembly_name].mass,
-            density=dict_of_comp[assembly_name].density,
+        assembly_name: StatComponentTree(
             number=1,
-            typeComponent=TypeComponent.ASSEMBLY,
             children=complete_info_on_list(sw_comps, dict_of_comp),
         )
     }
 
-    remove_duplicate_conf(dict_of_comp)
-    remove_conf(dict_of_comp)
+    fill_drawing_dependencies(sw_app, input_path, dict_of_comp)
+
+    remove_duplicate_confs(tree_of_comp, dict_of_comp)
+    remove_confs(tree_of_comp, dict_of_comp)
+
+    filter_component_type(tree_of_comp, dict_of_comp, type_component)
+
     if type_output is TypeOutput.TREE:
-        remove_duplicate_conf(tree_of_comp)
-        remove_conf_tree(tree_of_comp, dict_of_comp)
-        filter_component_type(tree_of_comp, type_component, is_tree_struct=True)
-        display_tree(tree_of_comp, type_sort)
+        display_tree(tree_of_comp, dict_of_comp, type_sort)
     elif type_output is TypeOutput.LIST:
+
         if only_default_density:
             dict_of_comp = filter_density_list(dict_of_comp)
-        filter_component_type(dict_of_comp, type_component)
         display_list(dict_of_comp, type_sort)
     else:
         click.echo(
