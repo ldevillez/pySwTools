@@ -144,6 +144,11 @@ You can select the type of compoments to include with `--filter`:
 - `part`: get only parts. Works only for list display
 - `assembly`: get only assemblies
 
+You can select the export that you want with `--export`:
+- `none`: (default) no export, only the display
+- `csv`: generate a `bom.csv` in the same directory as the solidworks project
+- `clipboard`: put the bom in the clipboard. You can copy paste it directly in excel
+
 You can get only the elements with a default density (1000 Kg/m³) with the option `--only-default-density`. This option only works with a `type `list`
 
 ### Clean

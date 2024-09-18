@@ -6,11 +6,12 @@ import os
 import click
 
 # pylint: disable=relative-beyond-top-level
-from ..utils import check_system, check_system_verbose
-from ..helper_sw import open_app_and_file, is_temp, is_assembly, open_drawing
+from ..utils import check_system, check_system_verbose, do_windows_clipboard
+from ..helper_sw import open_app_and_file, is_temp, is_assembly
 
 from .definitions import (
     TypeComponent,
+    TypeExport,
     TypeOutput,
     TypeSort,
     StatComponent,
@@ -192,6 +193,36 @@ def remove_duplicate_conf_list(struct: dict, mass_struct: dict) -> None:
                 del struct[name_test]
 
 
+def sort_tulpe(
+    struct: list, mass_struct: dict, type_sort: TypeSort = TypeSort.MASS
+) -> list:
+    """
+    Sort a list of tuple struct following a given sort
+    The first element of a tuple is the name and the second is the structure
+    """
+
+    if type_sort is TypeSort.NAME:
+        return sorted(
+            struct,
+            key=lambda i: i[0],
+            reverse=True,
+        )
+    if type_sort is TypeSort.MASS:
+        return sorted(
+            struct,
+            key=lambda i: mass_struct[i[0]].mass * i[1].number,
+            reverse=True,
+        )
+    if type_sort is TypeSort.MASS_PART:
+        return sorted(
+            struct,
+            key=lambda i: mass_struct[i[0]].mass,
+            reverse=True,
+        )
+
+    return struct
+
+
 def sort_key_struct(struct: dict, type_sort: TypeSort = TypeSort.MASS) -> list:
     """
     Sort a dict struct following a given sort
@@ -236,6 +267,47 @@ def sort_key_struct_tree(
         )
 
     return tree_struct.keys()
+
+
+def export_struct(
+    struct, mass_struct, type_export: TypeExport, type_sort: TypeSort, root_dir: str
+):
+    """
+    export struct
+    """
+    delim = "\t"
+    if type_export is TypeExport.CSV:
+        delim = ";"
+    cols = ["Name", "Mtot", "n", "Mpart", "Density", "Comp", "Drw"]
+    txt = delim.join(cols) + "\n"
+    stacks = sort_tulpe(list(struct.items()), mass_struct, type_sort)
+
+    while len(stacks) > 0:
+        k, v = stacks.pop(0)
+
+        values = [
+            k,
+            f"{mass_struct[k].mass * v.number:.3f}",
+            str(v.number),
+            f"{mass_struct[k].mass:.3f}",
+            f"{mass_struct[k].density:.3f}",
+            str(
+                "Part" if mass_struct[k].typeComponent == TypeComponent.PART else "Ass."
+            ),
+            str(mass_struct[k].numberDrawing),
+        ]
+        txt += delim.join(values) + "\n"
+
+        if hasattr(v, "children"):
+            stacks = (
+                sort_tulpe(list(v.children.items()), mass_struct, type_sort) + stacks
+            )
+
+    if type_export is TypeExport.CLIPBOARD:
+        do_windows_clipboard(txt)
+    elif type_export is TypeExport.CSV:
+        with open(os.path.join(root_dir, "bom.csv"), "w+", encoding="utf8") as f:
+            f.write(txt)
 
 
 def print_header():
@@ -434,6 +506,9 @@ def complete_info_assembly(sw_comp, dict_of_comp: dict) -> dict:
     "--type-sort", "type_sort", type=click.Choice(TypeSort), default=TypeSort.MASS
 )
 @click.option(
+    "--export", "export", type=click.Choice(TypeExport), default=TypeExport.NONE
+)
+@click.option(
     "--filter",
     "type_component",
     type=click.Choice(TypeComponent),
@@ -442,6 +517,7 @@ def complete_info_assembly(sw_comp, dict_of_comp: dict) -> dict:
 @click.option("--only-default-density", "only_default_density", is_flag=True)
 def stat(
     input_path: str,
+    export: TypeExport,
     type_output: TypeOutput,
     type_sort: TypeSort,
     type_component: TypeComponent,
@@ -486,18 +562,25 @@ def stat(
 
     clean_confs(tree_of_comp, dict_of_comp)
 
-    print(tree_of_comp)
-
     filter_component_type(tree_of_comp, dict_of_comp, type_component)
+
+    if only_default_density:
+        dict_of_comp = filter_density_list(dict_of_comp)
 
     if type_output is TypeOutput.TREE:
         display_tree(tree_of_comp, dict_of_comp, type_sort)
     elif type_output is TypeOutput.LIST:
-
-        if only_default_density:
-            dict_of_comp = filter_density_list(dict_of_comp)
         display_list(dict_of_comp, type_sort)
     else:
         click.echo(
             f"Type output {type_output} is unknown {type_output is TypeOutput.TREE} {type(type_output)}"
+        )
+
+    if export is not TypeExport.NONE:
+        export_struct(
+            tree_of_comp if type_output is TypeOutput.TREE else dict_of_comp,
+            dict_of_comp,
+            export,
+            type_sort,
+            os.path.dirname(input_path),
         )

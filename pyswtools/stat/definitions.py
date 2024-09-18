@@ -25,17 +25,36 @@ class TypeSort(str, Enum):
     NAME = "name"
 
 
+class TypeExport(str, Enum):
+    """Class represeting an export type"""
+
+    NONE = "none"
+    CSV = "csv"
+    CLIPBOARD = "clipboard"
+
+
 @dataclass
 class StatComponentTree:
+    """
+    Class represting a component for a tree structure
+    """
+
     number: int
     children: list
 
     def dict(self):
+        """
+        Convert the class to a dict structure
+        """
         return {k: v for k, v in asdict(self).items()}
 
 
 @dataclass
 class StatComponent:
+    """
+    Class representing a component for the stat module
+    """
+
     mass: float
     density: float
     number: int
@@ -43,4 +62,7 @@ class StatComponent:
     numberDrawing: int
 
     def dict(self):
+        """
+        Convert the class to a dict structure
+        """
         return {k: v for k, v in asdict(self).items()}
