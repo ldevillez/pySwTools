@@ -2,10 +2,14 @@
 
 ## [Unreleased]
 ### Added
+- Adding the type of component into the display of the stat module
+- Adding a flag to filter the type of components
+- Adding the number of drawings using the parts
 ### Changed
 ### Deprecated
 ### Removed
 ### Fixed
+- Fixing an issue with the configuration name removal. Some parts were not correctly counted in the tree display.
 ### Security
 
 ## v0.7.1 - 2024/09/12

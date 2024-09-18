@@ -33,7 +33,7 @@ def open_app_and_file(path_file: str):
     # Open app
     sw_app = open_app()
 
-    # Open the assembly
+    # Open the file
     sw_doc = sw_app.OpenDoc6(os.path.abspath(path_file), 2, 1, "", VT_BYREF, VT_BYREF)
 
     # Get the filename
@@ -43,6 +43,22 @@ def open_app_and_file(path_file: str):
     sw_app.ActivateDoc3(filename, True, 2, VT_BYREF)
 
     return sw_app, sw_doc, filename
+
+
+def open_drawing(sw_app, path_file: str):
+    """
+    Create open document activate it
+    """
+    # Open the assembly
+    sw_doc = sw_app.OpenDoc6(os.path.abspath(path_file), 3, 1, "", VT_BYREF, VT_BYREF)
+
+    # Get the filename
+    _, filename = os.path.split(path_file)
+
+    # Activate it
+    sw_app.ActivateDoc3(filename, True, 2, VT_BYREF)
+
+    return sw_doc, filename
 
 
 def is_assembly(path: str) -> bool:

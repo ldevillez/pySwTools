@@ -139,6 +139,11 @@ You can select the sort mode with `--type-sort`:
 - `mass-part`: sort with a decreasing part mass
 - `name`: sort with alphabetical order
 
+You can select the type of compoments to include with `--filter`:
+- `all`: (default) get both parts and assemblies
+- `part`: get only parts. Works only for list display
+- `assembly`: get only assemblies
+
 You can get only the elements with a default density (1000 Kg/m³) with the option `--only-default-density`. This option only works with a `type `list`
 
 ### Clean
