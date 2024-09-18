@@ -5,6 +5,7 @@
 - Adding the type of component into the display of the stat module
 - Adding a flag to filter the type of components
 - Adding the number of drawings using the parts
+- Adding an option to export stats module to CSV or to clipboard
 ### Changed
 ### Deprecated
 ### Removed
