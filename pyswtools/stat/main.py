@@ -75,12 +75,16 @@ def filter_component_type_tree(tree_struct: dict, list_struct: dict) -> None:
             filter_component_type_tree(v.children, list_struct)
 
 
-def remove_confs(tree_struct: dict, dict_of_comp: dict) -> None:
+def clean_confs(tree_struct: dict, dict_struct: dict) -> None:
     """
-    Clean the name of the tree and list struct.
+    Clean the name of the tree and list struct of the conf and remove duplicate.
     """
-    remove_conf_list(dict_of_comp)
-    remove_conf_tree(tree_struct, dict_of_comp)
+
+    remove_duplicate_conf_list(dict_struct, dict_struct)
+    remove_duplicate_conf_tree(tree_struct, dict_struct)
+
+    remove_conf_list(dict_struct)
+    remove_conf_tree(tree_struct, dict_struct)
 
 
 def remove_conf_tree(tree_struct: dict, dict_of_comp: dict) -> None:
@@ -154,34 +158,17 @@ def remove_conf_list(list_struct: dict) -> None:
             del list_struct[name]
 
 
-def remove_duplicate_confs(tree_struct: dict, dict_struct: dict) -> None:
-    """
-    Filter element from a tree and list struct which have only different configuration names but same Mass
-    """
-    remove_duplicate_conf_list(dict_struct)
-    remove_duplicate_conf_tree(tree_struct, dict_struct)
-
-
 def remove_duplicate_conf_tree(tree_struct: dict, dict_struct: dict) -> None:
     """
     Filter element from struct (tree or list) which have only different configuration names but same Mass
     """
+
+    remove_conf_with_list(tree_struct, dict_struct)
     for name in list(tree_struct.keys()):
-        # If the name was removed from the dict strict
-        if name not in dict_struct:
-            stripped_name = strip_conf(name)
-
-            # If the occurence is not present yet
-            if stripped_name not in tree_struct:
-                tree_struct[stripped_name] = StatComponentTree(number=0, children=[])
-            tree_struct[stripped_name].number += tree_struct[name].number
-            tree_struct[stripped_name].children.append(tree_struct[name].children)
-
-        # Clean the childrens
         remove_duplicate_conf_tree(tree_struct[name].children, dict_struct)
 
 
-def remove_duplicate_conf_list(struct: dict) -> None:
+def remove_duplicate_conf_list(struct: dict, mass_struct: dict) -> None:
     """
     Filter element from struct (tree or list) which have only different configuration names but same Mass
     """
@@ -196,7 +183,7 @@ def remove_duplicate_conf_list(struct: dict) -> None:
         # We test the following elements
         for name_test in sorted_list[idx + 1 :]:
             # if we do not have the same mass, we end
-            if abs(struct[name].mass - struct[name_test].mass) > 1e-5:
+            if abs(mass_struct[name].mass - mass_struct[name_test].mass) > 1e-5:
                 break
             # We compare the names
             if strip_conf(name_test) == strip_conf(name):
@@ -497,8 +484,9 @@ def stat(
 
     fill_drawing_dependencies(sw_app, input_path, dict_of_comp)
 
-    remove_duplicate_confs(tree_of_comp, dict_of_comp)
-    remove_confs(tree_of_comp, dict_of_comp)
+    clean_confs(tree_of_comp, dict_of_comp)
+
+    print(tree_of_comp)
 
     filter_component_type(tree_of_comp, dict_of_comp, type_component)
 
