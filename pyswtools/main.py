@@ -12,7 +12,7 @@ from .stat.main import stat
 from .clean.main import clean
 
 
-__version__ = "0.7.1"
+__version__ = "0.7.2"
 __author__ = "Devillez Louis"
 __maintainer__ = "Devillez Louis"
 __email__ = "louis.devillez@gmail.com"
