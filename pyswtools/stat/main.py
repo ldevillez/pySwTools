@@ -423,7 +423,7 @@ def complete_info_on_list(sw_comp_children, dict_of_comp: dict) -> dict:
         # Get the name
         sw_child_name = get_clean_name(sw_child)
 
-        # Get the info fo the assembly
+        # Get the info of the assembly
         child = complete_info_assembly(sw_child, dict_of_comp)
 
         # If the child is already here, only increase the number

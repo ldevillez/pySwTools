@@ -160,3 +160,13 @@ This tool help you clean the directory of your project and remove unused files
 pyswtools clean PATH/TO/DIR/PROJECT/ PATH/TO/MAIN/ASSEMBLY
 ```
 It will output all the solidworks files in `PATH/TO/DIR/PROJECT/` that are not used in the assembly.
+
+### Properties
+This tool help you duplicate properties from a template to files
+
+#### How to use
+
+```
+pyswtools properties PATH/TO/DIR/TEMPLATE_PART PATH/TO/FILE
+```
+It will add to `PATH/TO/FILE` the properties of `PATH/TO/DIR/TEMPLATE_PART`. If the target is a file, it will add the properties. If it is an assembly it will apply it to all its children instead.
