@@ -1,14 +1,15 @@
 # Changelog
 
-## v0.7.2 - 2024/09/19
+## [Unreleased]
 ### Added
+- Adding properties module
 ### Changed
 ### Deprecated
 ### Removed
 ### Fixed
 ### Security
 
-## [Unreleased]
+## v0.7.2 - 2024/09/19
 ### Added
 - Adding the type of component into the display of the stat module
 - Adding a flag to filter the type of components
