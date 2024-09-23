@@ -2,12 +2,15 @@
 
 ## [Unreleased]
 ### Added
-- Adding properties module
 ### Changed
 ### Deprecated
 ### Removed
 ### Fixed
 ### Security
+
+## v0.8.0 - 2024/09/23
+### Added
+- Adding properties module
 
 ## v0.7.2 - 2024/09/19
 ### Added
