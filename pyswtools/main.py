@@ -10,6 +10,7 @@ from .copy_full_assembly.main import copy_full_assembly
 from .auto_exporter.main import auto_export
 from .stat.main import stat
 from .clean.main import clean
+from .properties.main import properties
 
 
 __version__ = "0.7.2"
@@ -33,6 +34,7 @@ cli.add_command(copy_full_assembly)
 cli.add_command(auto_export)
 cli.add_command(stat)
 cli.add_command(clean)
+cli.add_command(properties)
 
 if __name__ == "__main__":
     cli()

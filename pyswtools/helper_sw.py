@@ -34,23 +34,27 @@ def open_app_and_file(path_file: str):
     sw_app = open_app()
 
     # Open the file
-    sw_doc = sw_app.OpenDoc6(os.path.abspath(path_file), 2, 1, "", VT_BYREF, VT_BYREF)
-
-    # Get the filename
-    _, filename = os.path.split(path_file)
-
-    # Activate it
-    sw_app.ActivateDoc3(filename, True, 2, VT_BYREF)
+    sw_doc, filename = open_file(sw_app, path_file)
 
     return sw_app, sw_doc, filename
 
 
-def open_drawing(sw_app, path_file: str):
+def open_file(sw_app, path_file: str):
     """
     Create open document activate it
     """
     # Open the assembly
-    sw_doc = sw_app.OpenDoc6(os.path.abspath(path_file), 3, 1, "", VT_BYREF, VT_BYREF)
+
+    # Default file type is part
+    type_file = 1
+    if is_assembly(path_file):
+        type_file = 2
+    elif is_drawing(path_file):
+        type_file = 3
+
+    sw_doc = sw_app.OpenDoc6(
+        os.path.abspath(path_file), type_file, 1, "", VT_BYREF, VT_BYREF
+    )
 
     # Get the filename
     _, filename = os.path.split(path_file)
@@ -59,6 +63,11 @@ def open_drawing(sw_app, path_file: str):
     sw_app.ActivateDoc3(filename, True, 2, VT_BYREF)
 
     return sw_doc, filename
+
+
+def is_drawing(path: str) -> bool:
+    """Return True if paths point to a drawing file"""
+    return ".SLDDRW" in path.upper()
 
 
 def is_assembly(path: str) -> bool:
