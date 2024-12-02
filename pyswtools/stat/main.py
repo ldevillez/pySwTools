@@ -415,6 +415,10 @@ def complete_info_on_list(sw_comp_children, dict_of_comp: dict) -> dict:
     Get all the info from a list of component
     """
     children = {}
+
+    if sw_comp_children is None:
+        return children
+
     for sw_child in sw_comp_children:
         # Do not treat suppressed comporents
         if sw_child.GetSuppression2 == 0:
@@ -463,14 +467,16 @@ def complete_info_assembly(sw_comp, dict_of_comp: dict) -> dict:
         else:
             click.echo(f"Could not evaluate {sw_comp_name}")
 
+        print(sw_comp_name)
         # Create an new entity in the general dict
+        sw_comp_children = sw_comp.GetChildren
         dict_of_comp[sw_comp_name] = StatComponent(
             mass=sw_mass,
             density=sw_density,
             number=1,
             typeComponent=(
                 TypeComponent.ASSEMBLY
-                if len(sw_comp.GetChildren) > 0
+                if sw_comp_children is not None and len(sw_comp_children) > 0
                 else TypeComponent.PART
             ),
             numberDrawing=0,

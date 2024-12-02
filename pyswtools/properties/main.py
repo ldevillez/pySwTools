@@ -75,6 +75,9 @@ def apply_props_to_doc(sw_doc, props):
         for k, v in props.items():
             ext.Add3(k, v["type"], v["value"], 0)
 
+    # Need to save the document
+    sw_doc.save3(1, VT_BYREF, VT_BYREF)
+
 
 def apply_props_to_children(sw_comp_children, props):
     """
