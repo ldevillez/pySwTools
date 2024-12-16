@@ -8,6 +8,10 @@
 ### Fixed
 ### Security
 
+## v0.8.1 - 2024/12/16
+### Fixed
+- Properties were not correctly saved
+
 ## v0.8.0 - 2024/09/23
 ### Added
 - Adding properties module

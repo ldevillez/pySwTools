@@ -13,7 +13,7 @@ from .clean.main import clean
 from .properties.main import properties
 
 
-__version__ = "0.8.0"
+__version__ = "0.8.1"
 __author__ = "Devillez Louis"
 __maintainer__ = "Devillez Louis"
 __email__ = "louis.devillez@gmail.com"
